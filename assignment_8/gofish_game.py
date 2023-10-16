@@ -1,6 +1,5 @@
 import tkinter as tk
 import random
-import tkinter as tk
 from deck import Deck
 from card import Card
 
@@ -28,8 +27,18 @@ class CardGameApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Card Game")
-
         self.deck = Deck()
+
+        # Create a menu bar
+        menubar = tk.Menu(root)
+        root.config(menu=menubar)
+
+        # Create a File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New Game", command=self.new_game)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=root.quit)
 
         self.player1_label = tk.Label(root, text="Player 1")
         self.player1_label.pack()
@@ -76,6 +85,13 @@ class CardGameApp:
     def compare_cards(self, card1, card2):
         # Implement your card comparison logic here
         return 0  # Default to a tie
+
+    def new_game(self):
+        # Implement the logic to start a new game here
+        self.deck = Deck()
+        self.player1_card = None
+        self.player2_card = None
+        self.update_labels()
 
 if __name__ == "__main__":
     root = tk.Tk()
