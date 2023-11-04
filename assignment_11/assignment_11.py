@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import font
 from tkinter import colorchooser
 from tkinter import filedialog
+from tkinter import simpledialog
+from tkinter import messagebox
 
 class TextEditor(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -51,19 +53,52 @@ class TextEditor(tk.Tk):
         self.bind("<Control-S>", self.save_file_as)
 
     def open_file(self, event=None):
-        # Implement the open_file function
+        global current_file, modified
+        file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+        if not file_path:
+            return
+        current_file = file_path
+        with open(file_path, "r") as file:
+            text = file.read()
+            self.txt_edit.delete(1.0, tk.END)
+            self.txt_edit.insert(tk.END, text)
+        self.title(f"Text Editor - {current_file}")
+        self.modified = False
 
     def save_file(self, event=None):
-        # Implement the save_file function
+        global current_file, modified
+        if current_file:
+            with open(current_file, "w") as file:
+                text = self.txt_edit.get(1.0, tk.END)
+                file.write(text)
+            self.modified = False
 
     def change_font(self):
-        # Implement the change_font function
+        font_selection = simpledialog.askstring("Font Selection", "Enter the font (e.g., Arial 12):")
+        if font_selection:
+            try:
+                font_obj = font.Font(root=self.txt_edit, family=font_selection.split()[0], size=int(font_selection.split()[1]))
+                self.txt_edit.configure(font=font_obj)
+            except:
+                messagebox.showerror("Error", "Invalid font format. Please use 'FontName Size'.")
 
     def change_text_color(self):
-        # Implement the change_text_color function
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.txt_edit.tag_configure("custom_color", foreground=color)
+            self.txt_edit.tag_add("custom_color", self.txt_edit.index(tk.SEL_FIRST), self.txt_edit.index(tk.SEL_LAST))
 
     def save_file_as(self, event=None):
-        # Implement the save_file_as function
+        global current_file, modified
+        file_path = filedialog.asksaveasfilename(defaultextension="txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+        if not file_path:
+            return
+        current_file = file_path
+        with open(file_path, "w") as file:
+            text = self.txt_edit.get(1.0, tk.END)
+            file.write(text)
+        self.title(f"Text Editor - {current_file}")
+        self.modified = False
 
     def text_modified(self, event=None):
         self.modified = True
