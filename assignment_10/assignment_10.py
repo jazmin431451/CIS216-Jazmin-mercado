@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import font
 from tkinter import colorchooser
-from tkinter import filedialog
+from tkinter import messagebox, filedialog
+from tkinter.simpledialog import askstring
 
 current_file = None  # To track the currently open file
 modified = False  # To track if the text has been modified
@@ -9,12 +10,12 @@ modified = False  # To track if the text has been modified
 def open_file(event=None):
     global current_file, modified
     if modified:
-        save_prompt = tk.messagebox.askyesnocancel("Save Changes", "Do you want to save the changes before opening a new file?")
+        save_prompt = messagebox.askyesnocancel("Save Changes", "Do you want to save the changes before opening a new file?")
         if save_prompt is None:
-            return  # Cancel
+            return 
         if save_prompt:
             save_file()
-    file_path = tk.filedialog.askopenfilename(filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+    file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
     if not file_path:
         return
     current_file = file_path
@@ -36,22 +37,9 @@ def save_file(event=None):
     window.title(f"Text Editor - {current_file}")
     modified = False
 
-
-def change_font():
-    font_obj = font.nametofont(txt_edit.cget("font"))
-    custom_font = tk.font.Font(root=txt_edit, family=font_obj.actual("family"), size=12)
-    txt_edit.tag_configure("custom_font", font=custom_font)
-    txt_edit.tag_add("custom_font", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
-
-def change_text_color():
-    color = colorchooser.askcolor()[1]
-    if color:
-        txt_edit.tag_configure("custom_color", foreground=color)
-        txt_edit.tag_add("custom_color", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
-
 def save_file_as(event=None):
     global current_file, modified
-    file_path = tk.filedialog.asksaveasfilename(defaultextension="txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+    file_path = filedialog.asksaveasfilename(defaultextension="txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
     if not file_path:
         return
     current_file = file_path
@@ -60,6 +48,20 @@ def save_file_as(event=None):
         file.write(text)
     window.title(f"Text Editor - {current_file}")
     modified = False
+
+def change_font():
+    font_name = askstring("Font Selection", "Enter font name (e.g., Arial):")
+    if font_name:
+        txt_edit.tag_configure("custom_font", font=(font_name, 12))
+        txt_edit.tag_add("custom_font", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
+
+def change_text_color():
+    color = colorchooser.askcolor()[1]
+    if color:
+        txt_edit.tag_configure("custom_color", foreground=color)
+        txt_edit.tag_add("custom_color", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
+
+
 
 def text_modified(event=None):
     global modified
