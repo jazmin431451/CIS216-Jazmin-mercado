@@ -1,12 +1,19 @@
 import tkinter as tk
 from tkinter import font
 from tkinter import colorchooser
+from tkinter import filedialog
 
 current_file = None  # To track the currently open file
 modified = False  # To track if the text has been modified
 
 def open_file(event=None):
     global current_file, modified
+    if modified:
+        save_prompt = tk.messagebox.askyesnocancel("Save Changes", "Do you want to save the changes before opening a new file?")
+        if save_prompt is None:
+            return  # Cancel
+        if save_prompt:
+            save_file()
     file_path = tk.filedialog.askopenfilename(filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
     if not file_path:
         return
@@ -20,16 +27,20 @@ def open_file(event=None):
 
 def save_file(event=None):
     global current_file, modified
-    if current_file:
-        with open(current_file, "w") as file:
-            text = txt_edit.get(1.0, tk.END)
-            file.write(text)
-        modified = False
+    if not current_file:
+        save_file_as()
+        return
+    with open(current_file, "w") as file:
+        text = txt_edit.get(1.0, tk.END)
+        file.write(text)
+    window.title(f"Text Editor - {current_file}")
+    modified = False
+
 
 def change_font():
     font_obj = font.nametofont(txt_edit.cget("font"))
-    font = tk.font.Font(root=txt_edit, family=font_obj.actual("family"), size=12)
-    txt_edit.tag_configure("custom_font", font=font)
+    custom_font = tk.font.Font(root=txt_edit, family=font_obj.actual("family"), size=12)
+    txt_edit.tag_configure("custom_font", font=custom_font)
     txt_edit.tag_add("custom_font", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
 
 def change_text_color():
@@ -73,9 +84,9 @@ window.config(menu=menu_bar)
 
 file_menu = tk.Menu(menu_bar)
 menu_bar.add_cascade(label="File", menu=file_menu)
-file_menu.add_command(label="Open", command=open_file, accelerator="Ctrl+O")
-file_menu.add_command(label="Save", command=save_file, accelerator="Ctrl+S")
-file_menu.add_command(label="Save As...", command=save_file_as, accelerator="Ctrl+Shift+S")
+file_menu.add_command(label="Open (Ctrl+O)", command=open_file, accelerator="Ctrl+O")
+file_menu.add_command(label="Save (Ctrl+S)", command=save_file, accelerator="Ctrl+S")
+file_menu.add_command(label="Save As (Ctrl+Shift+S)", command=save_file_as, accelerator="Ctrl+Shift+S")
 file_menu.add_separator()
 file_menu.add_command(label="Exit", command=window.quit)
 
