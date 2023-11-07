@@ -1,58 +1,11 @@
 import tkinter as tk
-from tkinter import font
-from tkinter import colorchooser
-from tkinter import filedialog
-from tkinter import simpledialog
-from tkinter import messagebox
+from tkinter import font, messagebox
+from tkinter import colorchooser, filedialog, simpledialog
+from tkinter.simpledialog import askstring
 
-class TextEditor(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.current_file = None
-        self.modified = False
-
-        self.title("Text Editor")
-        self.geometry("800x600")
-
-        self.rowconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-
-        self.txt_edit = tk.Text(self)
-        self.txt_edit.grid(row=0, column=1, sticky="nsew")
-        self.txt_edit.bind("<Key>", self.text_modified)
-
-        scrollbar = tk.Scrollbar(self, command=self.txt_edit.yview)
-        scrollbar.grid(row=0, column=2, sticky="ns")
-        self.txt_edit.config(yscrollcommand=scrollbar.set)
-
-        self.menu_bar = tk.Menu(self)
-        self.config(menu=self.menu_bar)
-
-        self.create_menu()
-        self.create_bindings()
-        self.protocol("WM_DELETE_WINDOW", self.quit)
-
-    def create_menu(self):
-        self.file_menu = tk.Menu(self.menu_bar)
-        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
-        self.file_menu.add_command(label="Open (Ctrl+O)", command=self.open_file, accelerator="Ctrl+O")
-        self.file_menu.add_command(label="Save (Ctrl+S)", command=self.save_file, accelerator="Ctrl+S")
-        self.file_menu.add_command(label="Save As (Ctrl+Shift+S)", command=self.save_file_as, accelerator="Ctrl+Shift+S")
-        self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit", command=self.quit)
-
-        self.format_menu = tk.Menu(self.menu_bar)
-        self.menu_bar.add_cascade(label="Format", menu=self.format_menu)
-        self.format_menu.add_command(label="Change Font", command=self.change_font)
-        self.format_menu.add_command(label="Change Text Color", command=self.change_text_color)
-
-    def create_bindings(self):
-        self.bind("<Control-o>", self.open_file)
-        self.bind("<Control-s>", self.save_file)
-        self.bind("<Control-S>", self.save_file_as)
-
-    def open_file(self, event=None):
+current_file = None 
+modified = False
+def open_file(self, event=None):
         global current_file, modified
         file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
         if not file_path:
@@ -64,45 +17,119 @@ class TextEditor(tk.Tk):
             self.txt_edit.insert(tk.END, text)
         self.title(f"Text Editor - {current_file}")
         self.modified = False
-
-    def save_file(self, event=None):
-        global current_file, modified
-        if current_file:
-            with open(current_file, "w") as file:
-                text = self.txt_edit.get(1.0, tk.END)
-                file.write(text)
-            self.modified = False
-
-    def change_font(self):
-        font_selection = simpledialog.askstring("Font Selection", "Enter the font (e.g., Arial 12):")
-        if font_selection:
-            try:
-                font_obj = font.Font(root=self.txt_edit, family=font_selection.split()[0], size=int(font_selection.split()[1]))
-                self.txt_edit.configure(font=font_obj)
-            except:
-                messagebox.showerror("Error", "Invalid font format. Please use 'FontName Size'.")
-
-    def change_text_color(self):
-        color = colorchooser.askcolor()[1]
-        if color:
-            self.txt_edit.tag_configure("custom_color", foreground=color)
-            self.txt_edit.tag_add("custom_color", self.txt_edit.index(tk.SEL_FIRST), self.txt_edit.index(tk.SEL_LAST))
-
-    def save_file_as(self, event=None):
-        global current_file, modified
-        file_path = filedialog.asksaveasfilename(defaultextension="txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
-        if not file_path:
-            return
         current_file = file_path
-        with open(file_path, "w") as file:
-            text = self.txt_edit.get(1.0, tk.END)
-            file.write(text)
+        with open(file_path, "r") as file:
+            text = file.read()
+            self.txt_edit.delete(1.0, tk.END)
+            self.txt_edit.insert(tk.END, text)
         self.title(f"Text Editor - {current_file}")
         self.modified = False
 
-    def text_modified(self, event=None):
-        self.modified = True
 
-if __name__ == "__main__":
-    app = TextEditor()
-    app.mainloop()
+def save_file(event=None):
+    global current_file, modified
+    if not current_file:
+        save_file_as()
+        return
+    with open(current_file, "w") as file:
+        text = txt_edit.get(1.0, tk.END)
+        file.write(text)
+    window.title(f"Text Editor - {current_file}")
+    modified = False
+
+
+def save_file_as(event=None):
+    global current_file, modified
+    file_path = filedialog.asksaveasfilename(defaultextension="txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+    if not file_path:
+        return
+    current_file = file_path
+    with open(file_path, "w") as file:
+        text = txt_edit.get(1.0, tk.END)
+        file.write(text)
+    window.title(f"Text Editor - {current_file}")
+    modified = False
+
+def change_font():
+    font_name = askstring("Font Selection", "Enter font name (e.g., Arial):")
+    if font_name:
+        txt_edit.tag_configure("custom_font", font=(font_name, 12))
+        txt_edit.tag_add("custom_font", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
+
+def change_text_color():
+    color = colorchooser.askcolor()[1]
+    if color:
+        txt_edit.tag_configure("custom_color", foreground=color)
+        txt_edit.tag_add("custom_color", txt_edit.index(tk.SEL_FIRST), txt_edit.index(tk.SEL_LAST))
+
+
+def text_modified(self, event=None):
+    self.modified = True
+
+def toggle_word_wrap(self):
+    self.word_wrap_enabled = not self.word_wrap_enabled
+    self.txt_edit.config(wrap=tk.WORD if self.word_wrap_enabled else tk.NONE)
+def undo(self):
+    self.txt_edit.event_generate("<<Undo>>")
+
+def redo(self):
+    self.txt_edit.event_generate("<<Redo>>")
+
+def find(self):
+    find_text = simpledialog.askstring("Find", "Enter text to find:")
+    if find_text:
+        start_index = self.txt_edit.search(find_text, "1.0", tk.END)
+    if start_index:
+        end_index = f"{start_index}+{len(find_text)}c"
+        self.txt_edit.tag_remove("found", "1.0", tk.END)
+        self.txt_edit.tag_add("found", start_index, end_index)
+        self.txt_edit.mark_set("insert", start_index)
+        self.txt_edit.see(start_index)
+def about_dialog():
+    messagebox.showinfo("About", "Text Editor\nVersion 1.0\n© 2023 YourName")
+
+    help_menu = tk.Menu(menu_bar)
+    menu_bar.add_cascade(label="Help", menu=help_menu)
+    help_menu.add_command(label="About", command=about_dialog)
+ 
+def text_modified(event=None):
+    global modified
+    modified = True
+
+window = tk.Tk()
+window.title("Text Editor")
+
+window.rowconfigure(0, weight=1)
+window.columnconfigure(1, weight=1)
+
+txt_edit = tk.Text(window)
+txt_edit.grid(row=0, column=1, sticky="nsew")
+txt_edit.bind("<Key>", text_modified)
+
+scrollbar = tk.Scrollbar(window, command=txt_edit.yview)
+scrollbar.grid(row=0, column=2, sticky="ns")
+txt_edit.config(yscrollcommand=scrollbar.set)
+
+menu_bar = tk.Menu(window)
+window.config(menu=menu_bar)
+
+file_menu = tk.Menu(menu_bar)
+menu_bar.add_cascade(label="File", menu=file_menu)
+file_menu.add_command(label="Open (Ctrl+O)", command=open_file, accelerator="Ctrl+O")
+file_menu.add_command(label="Save (Ctrl+S)", command=save_file, accelerator="Ctrl+S")
+file_menu.add_command(label="Save As (Ctrl+Shift+S)", command=save_file_as, accelerator="Ctrl+Shift+S")
+file_menu.add_separator()
+file_menu.add_command(label="Exit", command=window.quit)
+
+format_menu = tk.Menu(menu_bar)
+menu_bar.add_cascade(label="Format", menu=format_menu)
+format_menu.add_command(label="Change Font", command=change_font)
+format_menu.add_command(label="Change Text Color", command=change_text_color)
+
+window.bind("<Control-o>", open_file)
+window.bind("<Control-s>", save_file)
+window.bind("<Control-S>", save_file_as)
+
+window.protocol("WM_DELETE_WINDOW", window.quit)
+
+window.mainloop()
